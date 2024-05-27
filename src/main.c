@@ -1,19 +1,22 @@
 #include <stdio.h>
 #include <jansson.h>
+#include <stdlib.h>
 #include <string.h>
 
-#define DEFAULT_CONFIG_PATH  "~/.config/birthday-tracker/config.json"
-#define DEFAULT_DATABASE_PATH "~/.local/share/birthday-tracker/birthdays.json"
+// Default paths to config directory and database file, relative to the user's HOME directory.
+#define CONFIG_PATH  ".config/birthday-tracker"
+#define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
 
 int handle_config();
 void create_config();
 json_t read_birthdays(char* path);
 void print_usage();
 void get_command(int argc, char *argv[]);
+void set_defaults();
 
 // config struct
 typedef struct {
-    char* path_to_birthdays;
+    const char* path_to_birthdays;
 } config_t;
 
 // birthday struct
@@ -36,14 +39,24 @@ config_t config;
 // Program command mode
 enum command program_command;
 
+// Default config path and database path, respectively.
+const char *default_config_path;
+const char *default_database_path;
+
 int main(int argc, char *argv[]) {
+    // Set default global variables.
+    set_defaults();
     // Read config file.
     int error = handle_config();
 
     // Create config file if config is missing.
     if (error == -1) {
+        printf("ERROR 1");
+        exit(0);
         create_config();
     }
+    printf("ERROR 2");
+    exit(0);
     // Read birthday json file.
     json_t *json_root = json_load_file(config.path_to_birthdays, JSON_REJECT_DUPLICATES, NULL);
     if (!json_root) {
@@ -55,7 +68,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    free(config.path_to_birthdays);
+    /* free(config.path_to_birthdays); */
     get_command(argc, argv);
 }
 
@@ -87,12 +100,19 @@ void get_command(int argc, char *argv[]) {
 // Opens config json file and sets the value of `config`.
 // Returns -1 if it there is no config file.
 int handle_config() {
-    char *config_path = getenv("BIRTHDAY_TRACKER_CONFIG");
-    if (!config_path) {
+    // Get config directory.
+    const char *config_dir = getenv("BIRTHDAY_TRACKER_CONFIG");
+    if (!config_dir) {
         // Default config path.
-        config_path = DEFAULT_CONFIG_PATH;
+        config_dir = default_config_path;
     }
-    FILE *fptr = fopen(config_path, "r");
+
+    // Get config.json file from config directory and open it.
+    int n = strlen(config_dir) + strlen("/config.json");
+    char *config_file = (char*) malloc((n+1));
+    strcpy(config_file, config_dir);
+    strcat(config_file, "/config.json");
+    FILE *fptr = fopen(config_file, "r");
 
     // Config file not found.
     if (!fptr) {
@@ -104,14 +124,37 @@ int handle_config() {
     const char *database_path;
     json_unpack(config_json, "{s:s}", "database_path", &database_path);
     if (!database_path) {
-        config.path_to_birthdays = DEFAULT_DATABASE_PATH;
+        config.path_to_birthdays = default_database_path;
     }
     else {
-        config.path_to_birthdays = realloc(config.path_to_birthdays, strlen(database_path)+1);
-        strcpy(config.path_to_birthdays, database_path);
+        config.path_to_birthdays = database_path;
     }
 
     // Config complete.
     fclose(fptr);
     return 0;
+}
+
+// Set default global variables.
+void set_defaults() {
+    char *home = getenv("HOME");
+    int n = strlen(home);
+    // no idea why I need to add 2 instead of 1 but it'll truncate the last character if I don't.
+    // Missing some extra character being snuck in somewhere?
+    //
+    // Ok, so I figured it out, I guess snprintf needs the extra 1 for writing purposes, i don't know.
+    // I've added that to the callings of snprintf and left the rest with the +1 so the strings are
+    // just the right size.
+    // I'm leaving these comments here for...historical purposes I guess.
+    int bufsize_cf = n + strlen(CONFIG_PATH) + 1;
+    int bufsize_db = n + strlen(DATABASE_PATH) + 1;
+    char * config_path = (char*) malloc(bufsize_cf);
+    char * database_path = (char*) malloc(bufsize_db);
+    // Format default config path.
+    snprintf(config_path, bufsize_cf+1 , "%s/%s", home, CONFIG_PATH);
+    // Format default database path.
+    snprintf(database_path, bufsize_db+1 , "%s/%s", home, DATABASE_PATH);
+
+    default_config_path = config_path;
+    default_database_path = database_path;
 }
