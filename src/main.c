@@ -55,6 +55,7 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    free(config.path_to_birthdays);
     get_command(argc, argv);
 }
 
@@ -106,9 +107,11 @@ int handle_config() {
         config.path_to_birthdays = DEFAULT_DATABASE_PATH;
     }
     else {
+        config.path_to_birthdays = realloc(config.path_to_birthdays, strlen(database_path)+1);
         strcpy(config.path_to_birthdays, database_path);
     }
 
     // Config complete.
+    fclose(fptr);
     return 0;
 }
