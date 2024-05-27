@@ -53,21 +53,29 @@ int main(int argc, char *argv[]) {
     // Create config file if config is missing.
     if (error == -1) {
         create_config();
+        error = handle_config();
+        if (error == -1) {
+            printf("Could not read created config file. Exiting...\n");
+            exit(-3);
+        }
     }
 
-    exit(1);
+    printf("Value: %s\n", config.path_to_birthdays);
+    printf("Value: %s\n", default_database_path);
+    printf("Value: %s\n", default_config_path);
+    exit(0);
     // Read birthday json file.
     json_t *json_root = json_load_file(config.path_to_birthdays, JSON_REJECT_DUPLICATES, NULL);
     if (!json_root) {
         // TODO :: Create json and reassign pointer.
-        json_root = json_pack("[]");
+        json_root = json_array();
         if (json_dump_file(json_root, config.path_to_birthdays, 0) == -1) {
             printf("Couldn't create birthday json file. Exiting...");
             exit(-1);
         }
     }
 
-    /* free(config.path_to_birthdays); */
+    printf("SUCCESS!\n");
     get_command(argc, argv);
 }
 
@@ -109,8 +117,8 @@ int handle_config() {
 
     // Set database path value.
     json_t *config_json = json_loadf(fptr, 0, NULL);
-    const char *database_path;
-    json_unpack(config_json, "{s:s}", "database_path", &database_path);
+    const char *database_path = NULL;
+    json_unpack(config_json, "{s?:s}", "database_path", &database_path);
     if (!database_path) {
         config.path_to_birthdays = default_database_path;
     }
@@ -164,14 +172,16 @@ void set_defaults() {
     // I've added that to the callings of snprintf and left the rest with the +1 so the strings are
     // just the right size.
     // I'm leaving these comments here for...historical purposes I guess.
-    int bufsize_cf = n + strlen(CONFIG_PATH) + 1;
-    int bufsize_db = n + strlen(DATABASE_PATH) + 1;
+    //
+    // It actually needs +3 or there's issues. I don't know man.
+    int bufsize_cf = n + strlen(CONFIG_PATH) + 3;
+    int bufsize_db = n + strlen(DATABASE_PATH) + 3;
     char * config_path = (char*) malloc(bufsize_cf);
     char * database_path = (char*) malloc(bufsize_db);
     // Format default config path.
-    snprintf(config_path, bufsize_cf+1 , "%s/%s", home, CONFIG_PATH);
+    snprintf(config_path, bufsize_cf-1, "%s/%s", home, CONFIG_PATH);
     // Format default database path.
-    snprintf(database_path, bufsize_db+1 , "%s/%s", home, DATABASE_PATH);
+    snprintf(database_path, bufsize_db-1, "%s/%s", home, DATABASE_PATH);
 
     default_config_path = config_path;
     default_database_path = database_path;
