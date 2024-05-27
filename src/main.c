@@ -1,19 +1,13 @@
+#include "time.h"
 #include <stdio.h>
 #include <jansson.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-
-int handle_config();
-void create_config();
-json_t read_birthdays(char* path);
-void print_usage();
-void get_command(int argc, char *argv[]);
-void set_defaults();
-char *get_path_to_config_file();
 
 // config struct
 typedef struct {
@@ -22,7 +16,7 @@ typedef struct {
 
 // birthday struct
 typedef struct {
-    char* person_name;
+    const char* person_name;
     int day;
     int month;
     int year_of_birth;
@@ -34,6 +28,26 @@ enum command {
     EDIT,
     REMOVE
 };
+
+typedef struct date {
+    int day;
+    int month;
+    int year;
+} date_t;
+
+// Function Prototypes
+int handle_config();
+void create_config();
+json_t read_birthdays(char* path);
+void print_usage();
+void get_command(int argc, char *argv[]);
+void set_defaults();
+char *get_path_to_config_file();
+void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t current_date);
+birthday_t *decode_birthday_array(json_t *array, size_t *array_size);
+void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t date);
+char *literal_month(int month);
+date_t get_current_date();
 
 // Initiate global config file.
 config_t config;
@@ -69,9 +83,53 @@ int main(int argc, char *argv[]) {
             exit(-1);
         }
     }
-
+    size_t birthdays_bufsize;
+    birthday_t *birthdays = decode_birthday_array(json_root, &birthdays_bufsize);
+    date_t current_date;
     get_command(argc, argv);
+    switch (program_command) {
+        case LIST:
+            current_date = get_current_date();
+            sort_birthdays(birthdays, birthdays_bufsize, current_date);
+            list_birthdays(birthdays, birthdays_bufsize, current_date);
+            break;
+        case ADD:
+            printf("Not implemented yet!\n");
+            exit(0);
+            break;
+        case EDIT:
+            printf("Not implemented yet!\n");
+            exit(0);
+            break;
+        case REMOVE:
+            printf("Not implemented yet!\n");
+            exit(0);
+            break;
+        default:
+            printf("This should be impossible! Uh oh!\n");
+            exit(-4);
+            break;
+    }
+
+    free(birthdays);
     return 0;
+}
+
+date_t get_current_date() {
+    date_t current_date;
+
+    time_t t = time(NULL);
+    struct tm *date = localtime(&t);
+
+    current_date.day = date->tm_mday;
+    current_date.month = date->tm_mon;
+    current_date.year = 1900 + date->tm_year;
+
+    return current_date;
+}
+
+void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t date) {
+
 }
 
 // This should either be handle_arguments or get_command
@@ -111,7 +169,6 @@ int handle_config() {
     if (!fptr) {
         return -1;
     }
-
     // Set database path value.
     json_t *config_json = json_loadf(fptr, 0, NULL);
     const char *database_path = NULL;
@@ -182,4 +239,134 @@ void set_defaults() {
 
     default_config_path = config_path;
     default_database_path = database_path;
+}
+
+void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t current_date) {
+    for (int i = 0; i < array_size; i++) {
+        char *prefix;
+        birthday_t bd = birthdays_array[i];
+        switch (bd.day % 10) {
+            case 1:
+                prefix = "st";
+                break;
+            case 2:
+                prefix = "nd";
+                break;
+            case 3:
+                prefix = "rd";
+                break;
+            default:
+                prefix = "th";
+                break;
+        }
+        if (bd.day == 11 || bd.day == 12 || bd.day == 13) {
+            prefix = "th";
+        }
+        printf("%s: %s %d%s", bd.person_name, literal_month(bd.month), bd.day, prefix);
+        if (bd.year_of_birth != 0){
+            printf("\t(Turns %d)\n", current_date.year - bd.year_of_birth);
+        }
+        else {
+            printf("\n");
+        }
+    }
+    if (array_size == 0) {
+        printf("No birthdays!\n");
+    }
+
+}
+
+char *literal_month(int month) {
+    char *month_name;
+    switch (month) {
+        case 1:
+            month_name = "January";
+            break;
+        case 2:
+            month_name = "February";
+            break;
+        case 3:
+            month_name = "March";
+            break;
+        case 4:
+            month_name = "April";
+            break;
+        case 5:
+            month_name = "May";
+            break;
+        case 6:
+            month_name = "June";
+            break;
+        case 7:
+            month_name = "July";
+            break;
+        case 8:
+            month_name = "August";
+            break;
+        case 9:
+            month_name = "September";
+            break;
+        case 10:
+            month_name = "October";
+            break;
+        case 11:
+            month_name = "November";
+            break;
+        case 12:
+            month_name = "December";
+            break;
+        default:
+            month_name = "Not a real month :)";
+            break;
+    }
+
+    return month_name;
+}
+
+// Returns a dynamic array from the values from array and sets sizeptr to the number of entries in the array.
+birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
+    size_t array_size = json_array_size(array);
+    // Set sizeptr.
+    *sizeptr = array_size;
+    birthday_t *birthdays = (birthday_t*) malloc(array_size * sizeof(birthday_t));
+    if (!birthdays) {
+        printf("Couldn't allocate memory.\n");
+        exit(-6);
+    }
+
+    size_t i;
+    json_t *value;
+    json_t *name, *month, *day, *year;
+    json_array_foreach(array, i, value) {
+        int error = 0;
+
+        // Check that elements are correct value, if not: exit.
+        name = json_object_get(value, "name");
+        if (!json_is_string(name)) {
+            error = 1;
+        }
+        day = json_object_get(value, "day");
+        if (!json_is_integer(day)){
+            error = 1;
+        }
+        month = json_object_get(value, "month");
+        if (!json_is_integer(month)) {
+            error = 1;
+        }
+        year = json_object_get(value, "year");
+        if (error == 1) {
+            printf("Birthdays database is corrupted! Exiting...\n");
+            free(birthdays);
+            exit(-5);
+        }
+
+        // Set values
+        birthdays[i].person_name = json_string_value(name);
+        birthdays[i].day = json_integer_value(day);
+        birthdays[i].month = json_integer_value(month);
+        birthdays[i].year_of_birth = json_integer_value(year);
+
+    }
+
+    return birthdays;
 }
