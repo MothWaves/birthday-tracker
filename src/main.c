@@ -60,14 +60,9 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("Value: %s\n", config.path_to_birthdays);
-    printf("Value: %s\n", default_database_path);
-    printf("Value: %s\n", default_config_path);
-    exit(0);
     // Read birthday json file.
     json_t *json_root = json_load_file(config.path_to_birthdays, JSON_REJECT_DUPLICATES, NULL);
     if (!json_root) {
-        // TODO :: Create json and reassign pointer.
         json_root = json_array();
         if (json_dump_file(json_root, config.path_to_birthdays, 0) == -1) {
             printf("Couldn't create birthday json file. Exiting...");
@@ -75,8 +70,8 @@ int main(int argc, char *argv[]) {
         }
     }
 
-    printf("SUCCESS!\n");
     get_command(argc, argv);
+    return 0;
 }
 
 // This should either be handle_arguments or get_command
@@ -99,6 +94,8 @@ void get_command(int argc, char *argv[]) {
             program_command = REMOVE;
         }
         else {
+            // See if there's a way to not count the flags.
+            // If there is and the user gives a non-existent command, they should get a usage warning.
             program_command = LIST;
         }
     }
