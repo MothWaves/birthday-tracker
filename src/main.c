@@ -2,11 +2,14 @@
 #include <jansson.h>
 #include <string.h>
 
+#define DEFAULT_CONFIG_PATH  "~/.config/birthday-tracker/config.json"
+#define DEFAULT_DATABASE_PATH "~/.local/share/birthday-tracker/birthdays.json"
+
 int handle_config();
 void create_config();
 json_t read_birthdays(char* path);
 void print_usage();
-void handle_arguments(int argc, char *argv[]);
+void get_command(int argc, char *argv[]);
 
 // config struct
 typedef struct {
@@ -45,13 +48,18 @@ int main(int argc, char *argv[]) {
     json_t *json_root = json_load_file(config.path_to_birthdays, JSON_REJECT_DUPLICATES, NULL);
     if (!json_root) {
         // TODO :: Create json and reassign pointer.
+        json_root = json_pack("[]");
+        if (json_dump_file(json_root, config.path_to_birthdays, 0) == -1) {
+            printf("Couldn't create birthday json file. Exiting...");
+            exit(-1);
+        }
     }
 
-    handle_arguments(argc, argv);
+    get_command(argc, argv);
 }
 
 // This should either be handle_arguments or get_command
-void handle_arguments(int argc, char *argv[]) {
+void get_command(int argc, char *argv[]) {
     if (argc < 2) {
         program_command = LIST;
     }
@@ -61,16 +69,46 @@ void handle_arguments(int argc, char *argv[]) {
             program_command = LIST;
         }
         else if (strcmp(argument, "add") == 0) {
-            program_command = LIST;
+            program_command = ADD;
         }
         else if (strcmp(argument, "edit") == 0) {
-            program_command = LIST;
+            program_command = EDIT;
         }
         else if (strcmp(argument, "remove") == 0) {
-            program_command = LIST;
+            program_command = REMOVE;
         }
         else {
-            // Handle flags given to no command
+            program_command = LIST;
         }
     }
+}
+
+// Opens config json file and sets the value of `config`.
+// Returns -1 if it there is no config file.
+int handle_config() {
+    char *config_path = getenv("BIRTHDAY_TRACKER_CONFIG");
+    if (!config_path) {
+        // Default config path.
+        config_path = DEFAULT_CONFIG_PATH;
+    }
+    FILE *fptr = fopen(config_path, "r");
+
+    // Config file not found.
+    if (!fptr) {
+        return -1;
+    }
+
+    // Set database path value.
+    json_t *config_json = json_loadf(fptr, 0, NULL);
+    const char *database_path;
+    json_unpack(config_json, "{s:s}", "database_path", &database_path);
+    if (!database_path) {
+        config.path_to_birthdays = DEFAULT_DATABASE_PATH;
+    }
+    else {
+        strcpy(config.path_to_birthdays, database_path);
+    }
+
+    // Config complete.
+    return 0;
 }
