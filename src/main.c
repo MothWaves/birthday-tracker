@@ -13,6 +13,7 @@ json_t read_birthdays(char* path);
 void print_usage();
 void get_command(int argc, char *argv[]);
 void set_defaults();
+char *get_path_to_config_file();
 
 // config struct
 typedef struct {
@@ -51,12 +52,10 @@ int main(int argc, char *argv[]) {
 
     // Create config file if config is missing.
     if (error == -1) {
-        printf("ERROR 1");
-        exit(0);
         create_config();
     }
-    printf("ERROR 2");
-    exit(0);
+
+    exit(1);
     // Read birthday json file.
     json_t *json_root = json_load_file(config.path_to_birthdays, JSON_REJECT_DUPLICATES, NULL);
     if (!json_root) {
@@ -100,18 +99,7 @@ void get_command(int argc, char *argv[]) {
 // Opens config json file and sets the value of `config`.
 // Returns -1 if it there is no config file.
 int handle_config() {
-    // Get config directory.
-    const char *config_dir = getenv("BIRTHDAY_TRACKER_CONFIG");
-    if (!config_dir) {
-        // Default config path.
-        config_dir = default_config_path;
-    }
-
-    // Get config.json file from config directory and open it.
-    int n = strlen(config_dir) + strlen("/config.json");
-    char *config_file = (char*) malloc((n+1));
-    strcpy(config_file, config_dir);
-    strcat(config_file, "/config.json");
+    char *config_file = get_path_to_config_file();
     FILE *fptr = fopen(config_file, "r");
 
     // Config file not found.
@@ -133,6 +121,36 @@ int handle_config() {
     // Config complete.
     fclose(fptr);
     return 0;
+}
+
+// Creates a new empty config json file.
+void create_config() {
+    char * config_file = get_path_to_config_file();
+    FILE *fptr = fopen(config_file, "w");
+
+    if (!fptr) {
+        printf("Failed to create config file. Exiting...\n");
+        exit(-2);
+    }
+    else {
+        fclose(fptr);
+    }
+}
+
+char *get_path_to_config_file() {
+    // Get config directory.
+    const char *config_dir = getenv("BIRTHDAY_TRACKER_CONFIG");
+    if (!config_dir) {
+        // Default config path.
+        config_dir = default_config_path;
+    }
+
+    // Get config.json file from config directory and open it.
+    int n = strlen(config_dir) + strlen("/config.json");
+    char *config_file = (char*) malloc((n+1));
+    strcpy(config_file, config_dir);
+    strcat(config_file, "/config.json");
+    return config_file;
 }
 
 // Set default global variables.
