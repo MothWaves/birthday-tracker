@@ -1,3 +1,4 @@
 project('birthday-tracker', 'c')
 jsondep = dependency('jansson')
-executable('birthday-tracker', 'src/main.c', dependencies: jsondep)
+inc = include_directories('include')
+executable('birthday-tracker', 'src/main.c', dependencies: jsondep, include_directories : inc)

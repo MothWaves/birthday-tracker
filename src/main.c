@@ -1,39 +1,15 @@
-#include "time.h"
 #include <stdio.h>
 #include <jansson.h>
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
 
+#include "types.h"
+#include "sort.h"
+
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-
-// config struct
-typedef struct {
-    const char* path_to_birthdays;
-} config_t;
-
-// birthday struct
-typedef struct {
-    const char* person_name;
-    int day;
-    int month;
-    int year_of_birth;
-} birthday_t;
-
-enum command {
-    LIST,
-    ADD,
-    EDIT,
-    REMOVE
-};
-
-typedef struct date {
-    int day;
-    int month;
-    int year;
-} date_t;
 
 // Function Prototypes
 int handle_config();
@@ -45,7 +21,6 @@ void set_defaults();
 char *get_path_to_config_file();
 void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t current_date);
 birthday_t *decode_birthday_array(json_t *array, size_t *array_size);
-void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t date);
 char *literal_month(int month);
 date_t get_current_date();
 
@@ -126,10 +101,6 @@ date_t get_current_date() {
     current_date.year = 1900 + date->tm_year;
 
     return current_date;
-}
-
-void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t date) {
-
 }
 
 // This should either be handle_arguments or get_command
