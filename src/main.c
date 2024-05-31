@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <unistd.h>
 
 #include "types.h"
 #include "sort.h"
@@ -51,6 +52,10 @@ int main(int argc, char *argv[]) {
 
     // Read birthday json file.
     json_t *json_root = json_load_file(config.path_to_birthdays, JSON_REJECT_DUPLICATES, NULL);
+    if (!json_root && access(config.path_to_birthdays, F_OK) == 0) {
+        printf("Couldn't read birthdays database. Exiting...\n");
+        exit(-7);
+    }
     if (!json_root) {
         json_root = json_array();
         if (json_dump_file(json_root, config.path_to_birthdays, 0) == -1) {
@@ -213,9 +218,12 @@ void set_defaults() {
 }
 
 void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t current_date) {
+    // Loop over every birthday.
     for (int i = 0; i < array_size; i++) {
         char *prefix;
         birthday_t bd = birthdays_array[i];
+        int birthday_year = current_date.year;
+        // Set prefix for day number.
         switch (bd.day % 10) {
             case 1:
                 prefix = "st";
@@ -233,14 +241,27 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         if (bd.day == 11 || bd.day == 12 || bd.day == 13) {
             prefix = "th";
         }
+        // If the birthday is the same as the current date.
+        if (current_date.day == bd.day && current_date.month == bd.month) {
+            printf("[TODAY] ");
+        }
+
+        // Get year the birthday will be on.
+        if ((birthdays_array[i].month == current_date.month && birthdays_array[i].day < current_date.day) ||
+        birthdays_array[i].month < current_date.month) {
+            birthday_year += 1;
+        }
+
+        // Print birthday.
         printf("%s: %s %d%s", bd.person_name, literal_month(bd.month), bd.day, prefix);
         if (bd.year_of_birth != 0){
-            printf("  (Turns %d)\n", current_date.year - bd.year_of_birth);
+            printf("  (Turns %d)\n", birthday_year - bd.year_of_birth);
         }
         else {
             printf("\n");
         }
     }
+    // If no birthdays.
     if (array_size == 0) {
         printf("No birthdays!\n");
     }

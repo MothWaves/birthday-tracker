@@ -17,9 +17,20 @@ void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
 
     // Calculate ordinals
     for (int i = 0; i < array_size; i++) {
-        int birthday_ordinal = calculate_ordinal(birthdays_array[i].day, birthdays_array[i].month, current_date.year);
-        birthday_ordinal -= current_ordinal;
-        while(birthday_ordinal < 0) {
+        int year = current_date.year;
+        // Boolean flag that the birthday will happen next year.
+        int next_year = 0;
+
+        // Get year in which birthday will occur.
+        if ((birthdays_array[i].month == current_date.month && birthdays_array[i].day < current_date.day) ||
+        birthdays_array[i].month < current_date.month) {
+            year += 1;
+            next_year = 1;
+        }
+        // Calculate ordinal from the current_date.
+        int birthday_ordinal = calculate_ordinal(birthdays_array[i].day, birthdays_array[i].month, year);
+        birthday_ordinal -= current_ordinal; // This might cause an issue with leap years. I should fix that.
+        if (next_year) {
             birthday_ordinal += 360;
         }
         ordinals[i] = birthday_ordinal;
