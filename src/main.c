@@ -97,7 +97,7 @@ date_t get_current_date() {
     struct tm *date = localtime(&t);
 
     current_date.day = date->tm_mday;
-    current_date.month = date->tm_mon;
+    current_date.month = date->tm_mon + 1;
     current_date.year = 1900 + date->tm_year;
 
     return current_date;
@@ -235,7 +235,7 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         }
         printf("%s: %s %d%s", bd.person_name, literal_month(bd.month), bd.day, prefix);
         if (bd.year_of_birth != 0){
-            printf("\t(Turns %d)\n", current_date.year - bd.year_of_birth);
+            printf("  (Turns %d)\n", current_date.year - bd.year_of_birth);
         }
         else {
             printf("\n");
