@@ -9,6 +9,13 @@ This directory can be changed by setting your desired configuration directory wi
 
 The config file currently only has one option `database_path`, which specifies the path to the birthday database json file. 
 
+Example:
+```json
+{
+    "database_path": "/home/henri/Documents/birthdays.json"
+}
+```
+
 ## Birthday Database
 The Birthday Database is a json file which should specify an array of json objects, each of which should represent a birthday.
 
