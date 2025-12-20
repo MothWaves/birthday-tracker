@@ -17,7 +17,8 @@ int handle_config();
 void create_config();
 json_t read_birthdays(char* path);
 void print_usage();
-void get_command(int argc, char *argv[]);
+void print_version();
+void handle_arguments(int argc, char *argv[]);
 void set_defaults();
 char *get_path_to_config_file();
 void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t current_date);
@@ -27,14 +28,13 @@ date_t get_current_date();
 
 // Initiate global config file.
 config_t config;
-// Program command mode
-enum command program_command;
 
 // Default config path and database path, respectively.
 const char *default_config_path;
 const char *default_database_path;
 
 int main(int argc, char *argv[]) {
+    handle_arguments(argc, argv);
     // Set default global variables.
     set_defaults();
     // Read config file.
@@ -66,30 +66,9 @@ int main(int argc, char *argv[]) {
     size_t birthdays_bufsize;
     birthday_t *birthdays = decode_birthday_array(json_root, &birthdays_bufsize);
     date_t current_date;
-    get_command(argc, argv);
-    switch (program_command) {
-        case LIST:
-            current_date = get_current_date();
-            sort_birthdays(birthdays, birthdays_bufsize, current_date);
-            list_birthdays(birthdays, birthdays_bufsize, current_date);
-            break;
-        case ADD:
-            printf("Not implemented yet!\n");
-            exit(0);
-            break;
-        case EDIT:
-            printf("Not implemented yet!\n");
-            exit(0);
-            break;
-        case REMOVE:
-            printf("Not implemented yet!\n");
-            exit(0);
-            break;
-        default:
-            printf("This should be impossible! Uh oh!\n");
-            exit(-4);
-            break;
-    }
+    current_date = get_current_date();
+    sort_birthdays(birthdays, birthdays_bufsize, current_date);
+    list_birthdays(birthdays, birthdays_bufsize, current_date);
 
     free(birthdays);
     return 0;
@@ -108,30 +87,15 @@ date_t get_current_date() {
     return current_date;
 }
 
-// This should either be handle_arguments or get_command
-void get_command(int argc, char *argv[]) {
-    if (argc < 2) {
-        program_command = LIST;
-    }
-    else {
-        char *argument = argv[1];
-        if (strcmp(argument, "list") == 0) {
-            program_command = LIST;
-        }
-        else if (strcmp(argument, "add") == 0) {
-            program_command = ADD;
-        }
-        else if (strcmp(argument, "edit") == 0) {
-            program_command = EDIT;
-        }
-        else if (strcmp(argument, "remove") == 0) {
-            program_command = REMOVE;
+void handle_arguments(int argc, char *argv[]) {
+    if (argc > 1) {
+        if (strcmp(argv[1], "-v") == 0) {
+            print_version();
         }
         else {
-            // See if there's a way to not count the flags.
-            // If there is and the user gives a non-existent command, they should get a usage warning.
-            program_command = LIST;
+            print_usage();
         }
+        exit(0);
     }
 }
 
@@ -361,4 +325,23 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
     }
 
     return birthdays;
+}
+
+void print_usage() {
+    printf("usage: birthday-tracker [-vh]\n\n");
+    printf("options:\n");
+    printf(" -v\t\tshow info and version of program.\n");
+    // Not technically a lie I mean it does list the help even
+    // if any other non-existent flag does too
+    printf(" -h\t\tlists help\n");
+    printf("\n");
+    /* printf("Commands:\n"); */
+    /* printf("If no command is given it will print out the birthdays in order of closest to farthest from now.\n"); */
+}
+
+void print_version() {
+    printf("Birthday Tracker\n");
+    printf("Authored by Mothwaves\n");
+    printf("Version 0.4\n");
+    printf("License: UNLICENSE <https://unlicense.org/>\n");
 }
