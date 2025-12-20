@@ -12,7 +12,7 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.4.5"
+#define VERSION_STRING "0.5"
 
 // Function Prototypes
 int handle_config();
@@ -31,6 +31,8 @@ date_t get_current_date();
 config_t config;
 // boolean flag to print paths and exit
 int printPaths = false;
+// Only print important birthdays flag
+bool onlyImportant = false;
 
 // Default config path and database path, respectively.
 const char *default_config_path;
@@ -106,6 +108,10 @@ void handle_arguments(int argc, char *argv[]) {
         }
         else if (strcmp(argv[1], "-d") == 0) {
             printPaths = true;
+        }
+        else if (strcmp(argv[1], "-f") == 0
+                 || strcmp(argv[1], "--filter") == 0) {
+            onlyImportant = true;
         }
         else {
             print_usage();
@@ -203,6 +209,10 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         birthday_t bd = birthdays_array[i];
         int birthday_year = current_date.year;
         if (bd.hidden) {
+            continue;
+        }
+        // Skip non-important birthdays in important only mode.
+        if (onlyImportant && !bd.important) {
             continue;
         }
         // Set prefix for day number.
@@ -310,7 +320,7 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
 
     size_t i;
     json_t *value;
-    json_t *name, *month, *day, *year, *hidden;
+    json_t *name, *month, *day, *year, *hidden, *important;
     json_array_foreach(array, i, value) {
         int error = 0;
 
@@ -334,6 +344,7 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
             exit(-5);
         }
         hidden = json_object_get(value, "hidden");
+        important = json_object_get(value, "important");
 
 
         // Set values
@@ -341,12 +352,8 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
         birthdays[i].day = json_integer_value(day);
         birthdays[i].month = json_integer_value(month);
         birthdays[i].year_of_birth = json_integer_value(year);
-        if (json_is_true(hidden)) {
-            birthdays[i].hidden = true; 
-        }
-        else {
-            birthdays[i].hidden = false;
-        }
+        birthdays[i].hidden = json_is_true(hidden);
+        birthdays[i].important = json_is_true(important);
     }
 
     return birthdays;
@@ -355,11 +362,12 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
 void print_usage() {
     printf("usage: birthday-tracker [-vhd]\n\n");
     printf("options:\n");
-    printf(" -v\t\tshow info and version of program.\n");
+    printf(" -v, --version\t show info and version of program.\n");
     // Not technically a lie I mean it does list the help even
     // if any other non-existent flag does too
-    printf(" -h\t\tlists help\n");
-    printf(" -d\t\tprints config and birthdays database paths\n");
+    printf(" -h, --help\t lists help\n");
+    printf(" -d, --debug\t prints config and birthdays database paths\n");
+    printf(" -f, --filter\t only prints out birthdays marked as important.");
     printf("\n");
     /* printf("Commands:\n"); */
     /* printf("If no command is given it will print out the birthdays in order of closest to farthest from now.\n"); */
