@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <jansson.h>
 #include <stdlib.h>
+#include <stdbool.h>
 #include <string.h>
 #include <time.h>
 #include <unistd.h>
@@ -11,6 +12,7 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
+#define VERSION_STRING "0.4.5"
 
 // Function Prototypes
 int handle_config();
@@ -27,6 +29,8 @@ date_t get_current_date();
 
 // Initiate global config file.
 config_t config;
+// boolean flag to print paths and exit
+int printPaths = false;
 
 // Default config path and database path, respectively.
 const char *default_config_path;
@@ -49,15 +53,23 @@ int main(int argc, char *argv[]) {
         }
     }
 
+    if (printPaths) {
+        printf("Config path: %s\n", get_path_to_config_file());
+        printf("Path to birthdays: %s\n", config.path_to_birthdays);
+        exit(0);
+    }
+
     // Read birthday json file.
     json_t *json_root = json_load_file(config.path_to_birthdays, JSON_REJECT_DUPLICATES, NULL);
     if (!json_root && access(config.path_to_birthdays, F_OK) == 0) {
+        printf("Path to birthdays: %s\n", config.path_to_birthdays);
         printf("Couldn't read birthdays database. Exiting...\n");
         exit(-7);
     }
     if (!json_root) {
         json_root = json_array();
         if (json_dump_file(json_root, config.path_to_birthdays, 0) == -1) {
+            printf("Path to birthdays: %s\n", config.path_to_birthdays);
             printf("Couldn't create birthday json file. Exiting...\n");
             exit(-1);
         }
@@ -90,11 +102,15 @@ void handle_arguments(int argc, char *argv[]) {
     if (argc > 1) {
         if (strcmp(argv[1], "-v") == 0) {
             print_version();
+            exit(0);
+        }
+        else if (strcmp(argv[1], "-d") == 0) {
+            printPaths = true;
         }
         else {
             print_usage();
+            exit(0);
         }
-        exit(0);
     }
 }
 
@@ -186,6 +202,9 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         char *prefix;
         birthday_t bd = birthdays_array[i];
         int birthday_year = current_date.year;
+        if (bd.hidden) {
+            continue;
+        }
         // Set prefix for day number.
         switch (bd.day % 10) {
             case 1:
@@ -291,7 +310,7 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
 
     size_t i;
     json_t *value;
-    json_t *name, *month, *day, *year;
+    json_t *name, *month, *day, *year, *hidden;
     json_array_foreach(array, i, value) {
         int error = 0;
 
@@ -314,25 +333,33 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
             free(birthdays);
             exit(-5);
         }
+        hidden = json_object_get(value, "hidden");
+
 
         // Set values
         birthdays[i].person_name = json_string_value(name);
         birthdays[i].day = json_integer_value(day);
         birthdays[i].month = json_integer_value(month);
         birthdays[i].year_of_birth = json_integer_value(year);
-
+        if (json_is_true(hidden)) {
+            birthdays[i].hidden = true; 
+        }
+        else {
+            birthdays[i].hidden = false;
+        }
     }
 
     return birthdays;
 }
 
 void print_usage() {
-    printf("usage: birthday-tracker [-vh]\n\n");
+    printf("usage: birthday-tracker [-vhd]\n\n");
     printf("options:\n");
     printf(" -v\t\tshow info and version of program.\n");
     // Not technically a lie I mean it does list the help even
     // if any other non-existent flag does too
     printf(" -h\t\tlists help\n");
+    printf(" -d\t\tprints config and birthdays database paths\n");
     printf("\n");
     /* printf("Commands:\n"); */
     /* printf("If no command is given it will print out the birthdays in order of closest to farthest from now.\n"); */
@@ -341,6 +368,6 @@ void print_usage() {
 void print_version() {
     printf("Birthday Tracker\n");
     printf("Authored by Mothwaves\n");
-    printf("Version 0.4\n");
+    printf("Version %s\n", VERSION_STRING);
     printf("License: UNLICENSE <https://unlicense.org/>\n");
 }

@@ -12,6 +12,7 @@ typedef struct {
     int day;
     int month;
     int year_of_birth;
+    bool hidden;
 } birthday_t;
 
 enum command {
