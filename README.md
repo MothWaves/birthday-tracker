@@ -2,6 +2,11 @@
 
 A small birthday tracker that lists stored birthdays in order from closest to farthest away.
 
+## Usage
+Run `birthday-tracker -h` to get a list with the usage options.
+
+Currently the program only handles one argument/flag, but this isn't currently an issue because there aren't any arguments that could possibly overlap.
+
 ## Configuration
 The program uses a json file called `config.json` for configuration, by default stored in the user's home directory under the directory: `.config/birthday-tracker/`
 
@@ -28,4 +33,21 @@ A birthday should specify a name, a day, a month and optionally a year, and have
 	"year": 1999
 }
 ```
-The "year" can also be null, if you don't want to specify the year of birth. If you don't specify the year of birth the program will not include the age the individual is turning on that birthday.
+The `year` can also be null, if you don't want to specify the year of birth. If you don't specify the year of birth the program will not include the age the individual is turning on that birthday.
+
+There's also two other optional fields: `important` and `hidden`.
+
+``` json
+{
+	"name": "Alex",
+	"day": 8,
+	"month": 5,
+	"year": 1999
+    "hidden": false,
+    "important": true
+}
+```
+
+If `hidden` is set to true it will not be printed out. This option exists so you can keep birthdays in the database but not have them be displayed. Any other value in `hidden` will be ignored.
+
+`important` will only be considered when running with the `--filter` flag. When filter mode is enabled it will only display birthdays marked as important (with `important` set to true). `important` has no effect outside of that.
