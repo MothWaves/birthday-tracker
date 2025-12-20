@@ -249,9 +249,9 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         }
 
         // Print Name
-        printf(RED "%s" RESET, bd.person_name);
+        printf(RED "%s: " RESET, bd.person_name);
         // Print birthday.
-        printf("%s: %s %d%s", bd.person_name, literal_month(bd.month), bd.day, prefix);
+        printf("%s %d%s", literal_month(bd.month), bd.day, prefix);
         if (bd.year_of_birth != 0){
             printf("  (Turns %d)\n", birthday_year - bd.year_of_birth);
         }
