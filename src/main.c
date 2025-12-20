@@ -15,7 +15,6 @@
 // Function Prototypes
 int handle_config();
 void create_config();
-json_t read_birthdays(char* path);
 void print_usage();
 void print_version();
 void handle_arguments(int argc, char *argv[]);
