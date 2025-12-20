@@ -12,7 +12,11 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.5"
+#define VERSION_STRING "0.6"
+
+#define RED   "\x1B[31m"
+#define RESET "\x1B[0m"
+#define YEL   "\x1B[33m"
 
 // Function Prototypes
 int handle_config();
@@ -235,7 +239,7 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         }
         // If the birthday is the same as the current date.
         if (current_date.day == bd.day && current_date.month == bd.month) {
-            printf("[TODAY] ");
+            printf( YEL "[TODAY] " RESET);
         }
 
         // Get year the birthday will be on.
@@ -244,6 +248,8 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
             birthday_year += 1;
         }
 
+        // Print Name
+        printf(RED "%s" RESET, bd.person_name);
         // Print birthday.
         printf("%s: %s %d%s", bd.person_name, literal_month(bd.month), bd.day, prefix);
         if (bd.year_of_birth != 0){
