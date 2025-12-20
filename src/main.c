@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
     if (!json_root) {
         json_root = json_array();
         if (json_dump_file(json_root, config.path_to_birthdays, 0) == -1) {
-            printf("Couldn't create birthday json file. Exiting...");
+            printf("Couldn't create birthday json file. Exiting...\n");
             exit(-1);
         }
     }
