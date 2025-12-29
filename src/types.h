@@ -30,5 +30,6 @@ typedef struct date {
     int year;
 } date_t;
 
+date_t dateFromBirthday(birthday_t birthday);
 
 #endif // TYPES_H_

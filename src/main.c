@@ -13,7 +13,7 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.8.2"
+#define VERSION_STRING "0.9"
 
 #define RED   "\x1B[31m"
 #define YEL   "\x1B[33m"
@@ -42,6 +42,8 @@ int printPaths = false;
 bool onlyImportant = false;
 // Print Zodiac signs instead of birthdays
 bool zodiac_mode = false;
+// Counts and outputs days left until birthday
+bool countDaysLeft = false;
 
 // Default config path and database path, respectively.
 const char *default_config_path;
@@ -126,6 +128,10 @@ void handle_arguments(int argc, char *argv[]) {
         else if (strcmp(argv[i], "-z") == 0
                  || strcmp(argv[i], "--zodiac") == 0) {
             zodiac_mode = true;
+        }
+        else if (strcmp(argv[i], "-c") == 0
+                 || strcmp(argv[i], "--count") == 0) {
+            countDaysLeft = true;
         }
         else {
             print_usage();
@@ -253,8 +259,8 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         }
 
         // Get year the birthday will be on.
-        if ((birthdays_array[i].month == current_date.month && birthdays_array[i].day < current_date.day) ||
-        birthdays_array[i].month < current_date.month) {
+        if ((bd.month == current_date.month && bd.day < current_date.day) ||
+        bd.month < current_date.month) {
             birthday_year += 1;
         }
 
@@ -265,12 +271,18 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         printf("%s %d%s", literal_month(bd.month), bd.day, prefix);
 
         if (zodiac_mode) {
-            zodiac sign = getZodiac(birthdays_array[i]);
+            zodiac sign = getZodiac(bd);
             printf(CYN "  [%s]" RESET, zodiacString(sign));
         }
 
         if (bd.year_of_birth != 0){
             printf("  (Turns %d)", birthday_year - bd.year_of_birth);
+        }
+
+        if (countDaysLeft &&
+            !(current_date.day == bd.day && current_date.month == bd.month)) {
+            int daysLeft = calculateOrdinalDifference(current_date, dateFromBirthday(bd));
+            printf(MAG " (%d Days left)" RESET, daysLeft);
         }
 
         printf("\n");
@@ -391,6 +403,7 @@ void print_usage() {
     printf(" -d, --debug\t prints config and birthdays database paths\n");
     printf(" -f, --filter\t only prints out birthdays marked as important.\n");
     printf(" -z, --zodiac\t Prints out zodiac signs.\n");
+    printf(" -c, --count\t counts days left until a birthday. (Not super precise)\n");
     /* printf("Commands:\n"); */
     /* printf("If no command is given it will print out the birthdays in order of closest to farthest from now.\n"); */
 }

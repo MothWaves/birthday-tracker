@@ -8,6 +8,7 @@ void birthdaySwap(birthday_t *a, birthday_t *b);
 void intSwap(int *a, int *b);
 int calculate_ordinal(int day, int month, int year);
 int isLeap(int year);
+int calculateOrdinalDifference(date_t date, date_t other_date);
 
 // Sorts birthdays, starting with the ones closest to the current_date and ending with the ones farthest.
 void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t current_date) {
@@ -17,23 +18,7 @@ void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
 
     // Calculate ordinals
     for (int i = 0; i < array_size; i++) {
-        int year = current_date.year;
-        // Boolean flag that the birthday will happen next year.
-        int next_year = 0;
-
-        // Get year in which birthday will occur.
-        if ((birthdays_array[i].month == current_date.month && birthdays_array[i].day < current_date.day) ||
-        birthdays_array[i].month < current_date.month) {
-            year += 1;
-            next_year = 1;
-        }
-        // Calculate ordinal from the current_date.
-        int birthday_ordinal = calculate_ordinal(birthdays_array[i].day, birthdays_array[i].month, year);
-        birthday_ordinal -= current_ordinal; // This might cause an issue with leap years. I should fix that.
-        if (next_year) {
-            birthday_ordinal += 360;
-        }
-        ordinals[i] = birthday_ordinal;
+      ordinals[i] = calculateOrdinalDifference(current_date, dateFromBirthday(birthdays_array[i]));
     }
 
     // Sort birthdays (Uses heapsort)
@@ -46,6 +31,32 @@ void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
         intSwap(&ordinals[0], &ordinals[i]);
         heapify(birthdays_array, ordinals, i, 0);
     }
+}
+
+// Get difference from date to other_date. How many days left from date to other_date.
+// Used to calculate how long from current date to a birthday.
+// Will overshoot a little for dates that are next year to compensate for leap years.
+// Will also ignore other_date's actual year since it is not within the scope of the function's utility.
+// It will just assume that other_date is in the current year or if before date, that it is next year.
+int calculateOrdinalDifference(date_t date, date_t other_date) {
+    int current_ordinal = calculate_ordinal(date.day, date.month, date.year);
+    int year = date.year;
+    // Boolean flag that the birthday will happen next year.
+    int next_year = 0;
+
+    // Get year in which birthday will occur.
+    if ((birthday.month == date.month && birthday.day < date.day) ||
+    birthday.month < date.month) {
+        year += 1;
+        next_year = 1;
+    }
+    // Calculate ordinal from the current_date.
+    int birthday_ordinal = calculate_ordinal(birthday.day, birthday.month, year);
+    birthday_ordinal -= current_ordinal; // This might cause an issue with leap years. I should fix that.
+    if (next_year) {
+        birthday_ordinal += 360;
+    }
+    return birthday_ordinal;
 }
 
 int isLeap(int year) {
