@@ -13,7 +13,7 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.9"
+#define VERSION_STRING "0.9.1"
 
 #define RED   "\x1B[31m"
 #define YEL   "\x1B[33m"

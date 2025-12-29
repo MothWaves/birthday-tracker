@@ -12,8 +12,6 @@ int calculateOrdinalDifference(date_t date, date_t other_date);
 
 // Sorts birthdays, starting with the ones closest to the current_date and ending with the ones farthest.
 void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t current_date) {
-    // Get ordinal of current_date.
-    int current_ordinal = calculate_ordinal(current_date.day, current_date.month, current_date.year);
     int ordinals[array_size];
 
     // Calculate ordinals
@@ -39,24 +37,25 @@ void sort_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
 // Will also ignore other_date's actual year since it is not within the scope of the function's utility.
 // It will just assume that other_date is in the current year or if before date, that it is next year.
 int calculateOrdinalDifference(date_t date, date_t other_date) {
+    // Get Ordinal of current date
     int current_ordinal = calculate_ordinal(date.day, date.month, date.year);
     int year = date.year;
     // Boolean flag that the birthday will happen next year.
     int next_year = 0;
 
-    // Get year in which birthday will occur.
-    if ((birthday.month == date.month && birthday.day < date.day) ||
-    birthday.month < date.month) {
+    // Get year in which other_date will occur.
+    if ((other_date.month == date.month && other_date.day < date.day) ||
+    other_date.month < date.month) {
         year += 1;
         next_year = 1;
     }
     // Calculate ordinal from the current_date.
-    int birthday_ordinal = calculate_ordinal(birthday.day, birthday.month, year);
-    birthday_ordinal -= current_ordinal; // This might cause an issue with leap years. I should fix that.
+    int other_date_ordinal = calculate_ordinal(other_date.day, other_date.month, year);
+    other_date_ordinal -= current_ordinal; // This might cause an issue with leap years. I should fix that.
     if (next_year) {
-        birthday_ordinal += 360;
+        other_date_ordinal += 360;
     }
-    return birthday_ordinal;
+    return other_date_ordinal;
 }
 
 int isLeap(int year) {
