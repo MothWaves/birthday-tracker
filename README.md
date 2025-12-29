@@ -5,8 +5,6 @@ A small birthday tracker that lists stored birthdays in order from closest to fa
 ## Usage
 Run `birthday-tracker -h` to get a list with the usage options.
 
-Currently the program only handles one argument/flag, but this isn't currently an issue because there aren't any arguments that could possibly overlap.
-
 ## Configuration
 The program uses a json file called `config.json` for configuration, by default stored in the user's home directory under the directory: `.config/birthday-tracker/`
 

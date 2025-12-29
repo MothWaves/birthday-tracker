@@ -13,7 +13,7 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.7.1"
+#define VERSION_STRING "0.8"
 
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
@@ -108,20 +108,21 @@ date_t get_current_date() {
 }
 
 void handle_arguments(int argc, char *argv[]) {
-    if (argc > 1) {
-        if (strcmp(argv[1], "-v") == 0) {
+    for (int i = 0; i < argc; i++) {
+        if (strcmp(argv[i], "-v") == 0) {
             print_version();
             exit(0);
         }
-        else if (strcmp(argv[1], "-d") == 0) {
+        else if (strcmp(argv[i], "-d") == 0) {
             printPaths = true;
+            // Exits early.
         }
-        else if (strcmp(argv[1], "-f") == 0
-                 || strcmp(argv[1], "--filter") == 0) {
+        else if (strcmp(argv[i], "-f") == 0
+                 || strcmp(argv[i], "--filter") == 0) {
             onlyImportant = true;
         }
-        else if (strcmp(argv[1], "-z") == 0
-                 || strcmp(argv[1], "--zodiac") == 0) {
+        else if (strcmp(argv[i], "-z") == 0
+                 || strcmp(argv[i], "--zodiac") == 0) {
             zodiac_mode = true;
         }
         else {
