@@ -1,6 +1,6 @@
 project('birthday-tracker', 'c')
 jsondep = dependency('jansson')
-sources =  ['src/main.c', 'src/types.c', 'src/sort.c']
+sources =  ['src/main.c', 'src/types.c', 'src/sort.c', 'src/zodiac.c']
 headers = include_directories('src')
 
 # Include math library

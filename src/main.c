@@ -6,13 +6,14 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "zodiac.h"
 #include "types.h"
 #include "sort.h"
 
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.6"
+#define VERSION_STRING "0.7"
 
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
@@ -37,6 +38,8 @@ config_t config;
 int printPaths = false;
 // Only print important birthdays flag
 bool onlyImportant = false;
+// Print Zodiac signs instead of birthdays
+bool zodiac_mode = false;
 
 // Default config path and database path, respectively.
 const char *default_config_path;
@@ -116,6 +119,10 @@ void handle_arguments(int argc, char *argv[]) {
         else if (strcmp(argv[1], "-f") == 0
                  || strcmp(argv[1], "--filter") == 0) {
             onlyImportant = true;
+        }
+        else if (strcmp(argv[1], "-z") == 0
+                 || strcmp(argv[1], "--zodiac") == 0) {
+            zodiac_mode = true;
         }
         else {
             print_usage();
@@ -250,14 +257,20 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
 
         // Print Name
         printf(RED "%s: " RESET, bd.person_name);
+
         // Print birthday.
         printf("%s %d%s", literal_month(bd.month), bd.day, prefix);
+
+        if (zodiac_mode) {
+            zodiac sign = getZodiac(birthdays_array[i]);
+            printf("  [%s]", zodiacString(sign));
+        }
+
         if (bd.year_of_birth != 0){
-            printf("  (Turns %d)\n", birthday_year - bd.year_of_birth);
+            printf("  (Turns %d)", birthday_year - bd.year_of_birth);
         }
-        else {
-            printf("\n");
-        }
+
+        printf("\n");
     }
     // If no birthdays.
     if (array_size == 0) {
@@ -374,6 +387,7 @@ void print_usage() {
     printf(" -h, --help\t lists help\n");
     printf(" -d, --debug\t prints config and birthdays database paths\n");
     printf(" -f, --filter\t only prints out birthdays marked as important.");
+    printf(" -z, --zodiac\t Prints out zodiac signs.");
     printf("\n");
     /* printf("Commands:\n"); */
     /* printf("If no command is given it will print out the birthdays in order of closest to farthest from now.\n"); */
