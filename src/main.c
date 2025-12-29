@@ -13,7 +13,7 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.8"
+#define VERSION_STRING "0.8.1"
 
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
@@ -108,7 +108,7 @@ date_t get_current_date() {
 }
 
 void handle_arguments(int argc, char *argv[]) {
-    for (int i = 0; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-v") == 0) {
             print_version();
             exit(0);
@@ -380,7 +380,7 @@ birthday_t *decode_birthday_array(json_t *array, size_t *sizeptr) {
 }
 
 void print_usage() {
-    printf("usage: birthday-tracker [-vhd]\n\n");
+    printf("usage: birthday-tracker [-vhdfz]\n\n");
     printf("options:\n");
     printf(" -v, --version\t show info and version of program.\n");
     // Not technically a lie I mean it does list the help even
