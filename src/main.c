@@ -13,7 +13,7 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.7"
+#define VERSION_STRING "0.7.1"
 
 #define RED   "\x1B[31m"
 #define RESET "\x1B[0m"
@@ -386,9 +386,8 @@ void print_usage() {
     // if any other non-existent flag does too
     printf(" -h, --help\t lists help\n");
     printf(" -d, --debug\t prints config and birthdays database paths\n");
-    printf(" -f, --filter\t only prints out birthdays marked as important.");
-    printf(" -z, --zodiac\t Prints out zodiac signs.");
-    printf("\n");
+    printf(" -f, --filter\t only prints out birthdays marked as important.\n");
+    printf(" -z, --zodiac\t Prints out zodiac signs.\n");
     /* printf("Commands:\n"); */
     /* printf("If no command is given it will print out the birthdays in order of closest to farthest from now.\n"); */
 }
