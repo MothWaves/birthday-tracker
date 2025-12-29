@@ -13,11 +13,13 @@
 // Default paths to config directory and database file, relative to the user's HOME directory.
 #define CONFIG_PATH  ".config/birthday-tracker"
 #define DATABASE_PATH ".local/share/birthday-tracker/birthdays.json"
-#define VERSION_STRING "0.8.1"
+#define VERSION_STRING "0.8.2"
 
 #define RED   "\x1B[31m"
-#define RESET "\x1B[0m"
 #define YEL   "\x1B[33m"
+#define CYN   "\x1B[36m"
+#define MAG   "\x1B[35m"
+#define RESET "\x1B[0m"
 
 // Function Prototypes
 int handle_config();
@@ -264,7 +266,7 @@ void list_birthdays(birthday_t *birthdays_array, size_t array_size, date_t curre
 
         if (zodiac_mode) {
             zodiac sign = getZodiac(birthdays_array[i]);
-            printf("  [%s]", zodiacString(sign));
+            printf(CYN "  [%s]" RESET, zodiacString(sign));
         }
 
         if (bd.year_of_birth != 0){
