@@ -1,1 +1,3 @@
-Add flag to show count of days left until birthdays.
+Add flag to show count of days left until birthdays. (FIX)
+Add flag to show current age of people (Only prints out people with years set).
+
